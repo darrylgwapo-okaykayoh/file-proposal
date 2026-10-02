@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You Love</title>
+    <style>
+        :root {
+            --primary-color: #ff4d6d;
+            --bg-color: #fff0f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 100% Reliable Envelope Layout Button Box */
+        .envelope-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 50; /* Placed over everything */
+        }
+
+        .envelope {
+            position: relative;
+            width: 280px;
+            height: 180px;
+            background-color: #ff758f;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.5s ease;
+            transform-origin: center top;
+            overflow: visible;
+        }
+
+        .envelope.open {
+            transform: translateY(8px) scale(1.02);
+        }
+
+        /* Envelope Top Flap */
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-top: 100px solid #ff4d6d;
+            z-index: 3;
+            transform-origin: top center;
+            transition: transform 0.7s ease;
+        }
+
+        .envelope.open::before {
+            transform: rotateX(180deg) translateY(-10px);
+        }
+
+        /* Envelope Side Flaps */
+        .envelope::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid #ff85a1;
+            border-right: 140px solid #ff85a1;
+            border-bottom: 90px solid #ff85a1;
+            border-top: 90px solid transparent;
+            border-radius: 8px;
+            z-index: 2;
+        }
+
+        /* Heart Seal */
+        .heart-seal {
+            position: absolute;
+            top: 80px;
+            left: 125px;
+            width: 30px;
+            height: 30px;
+            background-color: #c9184a;
+            transform: rotate(-45deg);
+            z-index: 4;
+        }
+
+        .heart-seal::before,
+        .heart-seal::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #c9184a;
+            border-radius: 50%;
+        }
+
+        .heart-seal::before { top: -15px; left: 0; }
+        .heart-seal::after { left: 15px; top: 0; }
+
+        .envelope-text {
+            margin-top: 25px;
+            color: #c9184a;
+            font-weight: bold;
+            font-size: 1.2rem;
+            animation: bounce 1.5s infinite;
+            background: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Proposal Box (Hidden using standard CSS display property) */
+        .proposal-box {
+            display: none; 
+            text-align: center;
+            padding: 40px 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(255, 77, 109, 0.15);
+            max-width: 90%;
+            width: 400px;
+            z-index: 40;
+            animation: scaleUp 0.4s ease-out forwards;
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .question {
+            font-size: 1.8rem;
+            color: #c9184a;
+            margin-bottom: 40px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            position: relative;
+            height: 60px;
+            width: 100%;
+        }
+
+        .action-btn {
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            height: 50px;
+        }
+
+        #yesBtn {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        #noBtn {
+            background-color: #6c757d;
+            color: white;
+            position: absolute;
+            transition: left 0.1s ease, top 0.1s ease;
+        }
+
+        /* Success Screen Layout */
+        .success-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Center Flower Design */
+        .flower-wrapper {
+            position: absolute;
+            width: 180px;
+            height: 220px;
+            z-index: 20;
+            transform: translateY(-10px);
+        }
+
+        .flower-center {
+            width: 36px;
+            height: 36px;
+            background: radial-gradient(circle at 30% 30%, #ffe28a, #ffb703 60%, #f59e0b);
+            border-radius: 50%;
+            position: absolute;
+            top: 58px;
+            left: 72px;
+            z-index: 10;
+            box-shadow: 0 0 18px rgba(255, 183, 3, 0.7);
+        }
+
+        .petal {
+            width: 42px;
+            height: 72px;
+            background: linear-gradient(180deg, #ff7da8, #ff4d6d);
+            border-radius: 60% 60% 50% 50%;
+            position: absolute;
+            left: 69px;
+            top: 18px;
+            transform-origin: center 100%;
+            box-shadow: inset 0 -8px 10px rgba(255,255,255,0.18);
+        }
+
+        .p1 { transform: rotate(0deg) translateY(-20px); }
+        .p2 { transform: rotate(90deg) translateY(-20px); }
+        .p3 { transform: rotate(180deg) translateY(-20px); }
+        .p4 { transform: rotate(270deg) translateY(-20px); }
+
+        .stem {
+            width: 8px;
+            height: 110px;
+            background: linear-gradient(180deg, #3cb371, #2d6a4f);
+            position: absolute;
+            top: 90px;
+            left: 86px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(45, 106, 79, 0.3);
+        }
+
+        .leaf {
+            width: 32px;
+            height: 18px;
+            background: linear-gradient(135deg, #55c794, #2e8b57);
+            border-radius: 0 18px 0 18px;
+            position: absolute;
+            top: 125px;
+            left: 64px;
+            transform: rotate(-25deg);
+        }
+
+        /* Heart Form Placed Text */
+        .love-text {
+            position: absolute;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #ff4d6d;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            pointer-events: none; /* Prevents interaction blockages */
+        }
+
+        @keyframes popIn {
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="mainContainer">
+        
+        <!-- Native HTML Interactive Button wrapper -->
+        <button class="envelope-btn" id="envelopeWrapper" onclick="openEnvelope()">
+            <div class="envelope">
+                <div class="heart-seal"></div>
+            </div>
+            <div class="envelope-text">Click anywhere here to open! 💌</div>
+        </button>
+
+        <!-- Proposal UI Box -->
+        <div class="proposal-box" id="proposalBox">
+            <h1 class="question">Do you want to date with me?</h1>
+            <div class="btn-group">
+                <button class="action-btn" id="yesBtn" onclick="celebrate()">Yes</button>
+                <button class="action-btn" id="noBtn">No</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Celebration Screen -->
+    <div class="success-screen" id="successScreen">
+        <div class="canvas-container" id="canvasContainer">
+            <div class="flower-wrapper">
+                <div class="flower-center"></div>
+                <div class="petal p1"></div>
+                <div class="petal p2"></div>
+                <div class="petal p3"></div>
+                <div class="petal p4"></div>
+                <div class="stem"></div>
+                <div class="leaf"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const envelopeWrapper = document.getElementById('envelopeWrapper');
+        const proposalBox = document.getElementById('proposalBox');
+        const noBtn = document.getElementById('noBtn');
+        const successScreen = document.getElementById('successScreen');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const yesBtn = document.getElementById('yesBtn');
+        const btnGroup = document.querySelector('.btn-group');
+
+        let noCount = 0;
+        const maxNoAttempts = 12;
+
+        function moveNoButton() {
+            const groupWidth = btnGroup.clientWidth;
+            const groupHeight = btnGroup.clientHeight;
+            const buttonWidth = noBtn.offsetWidth || 120;
+            const buttonHeight = noBtn.offsetHeight || 50;
+            const maxLeft = Math.max(0, groupWidth - buttonWidth - 12);
+            const maxTop = Math.max(0, groupHeight - buttonHeight - 12);
+
+            const left = Math.random() * maxLeft;
+            const top = Math.random() * maxTop;
+
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = `${left}px`;
+            noBtn.style.top = `${top}px`;
+        }
+
+        function openEnvelope() {
+            envelopeWrapper.classList.add('open');
+            proposalBox.style.display = 'block';
+
+            setTimeout(() => {
+                envelopeWrapper.style.display = 'none';
+                proposalBox.style.display = 'block';
+                moveNoButton();
+            }, 500);
+        }
+
+        noBtn.addEventListener('mouseenter', () => {
+            if (noCount < maxNoAttempts) {
+                noCount += 1;
+                moveNoButton();
+            }
+        });
+
+        noBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (noCount < maxNoAttempts) {
+                noCount += 1;
+                moveNoButton();
+            }
+        });
+
+        function createFloatingHeart() {
+            const heart = document.createElement('div');
+            const heartText = ['💖', '💗', '💘', '💝', '✨'][Math.floor(Math.random() * 5)];
+            heart.textContent = heartText;
+            heart.style.position = 'absolute';
+            heart.style.left = `${Math.random() * 100}%`;
+            heart.style.top = `${Math.random() * 100}%`;
+            heart.style.fontSize = `${Math.random() * 20 + 18}px`;
+            heart.style.opacity = '0';
+            heart.style.animation = `floatUp ${Math.random() * 3 + 2}s ease-in forwards`;
+            canvasContainer.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 3000);
+        }
+
+        function celebrate() {
+            successScreen.style.display = 'flex';
+            proposalBox.style.display = 'none';
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes floatUp {
+                    0% { transform: translateY(40px) scale(0.7); opacity: 0; }
+                    20% { opacity: 1; }
+                    100% { transform: translateY(-220px) scale(1.2); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            for (let i = 0; i < 35; i += 1) {
+                setTimeout(createFloatingHeart, i * 90);
+            }
+
+            const message = document.createElement('div');
+            message.textContent = 'Yay! I love you always love💌';
+            message.style.position = 'absolute';
+            message.style.bottom = '80px';
+            message.style.left = '50%';
+            message.style.transform = 'translateX(-50%)';
+            message.style.fontSize = '2rem';
+            message.style.fontWeight = '700';
+            message.style.color = '#c9184a';
+            message.style.textShadow = '0 4px 12px rgba(201, 24, 74, 0.18)';
+            canvasContainer.appendChild(message);
+        }
+
+        yesBtn.addEventListener('click', celebrate);
+    </script>
